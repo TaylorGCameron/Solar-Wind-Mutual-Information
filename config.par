@@ -1,0 +1,13 @@
+#The path where data files are stored goes here
+filepath = C:/Users/Taylor/Google Drive/Science/Data/Solar-Wind-Mutual-Information/
+#filepath = C:/Users/taylo/Google Drive/Science/Data/Solar-Wind-Timeshifting/
+
+#A separate path for raw SuperMAG data
+SuperMAG_filepath = C:/Users/Taylor/Data/SuperMAG/
+
+#The range of years to calculate over, exclusive. So years are calculated UP TO the end year.
+start_year = 1999
+end_year = 2016
+
+#The following lines specify the interval lengths and spacing. If changed,
+#you will need to re-run generate_time_indices, generate_ideal_timeshifts,
