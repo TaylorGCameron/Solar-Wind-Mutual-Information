@@ -92,7 +92,8 @@ def status_bar(n, nmax):
     sys.stdout.flush()
     
 def keep_finite(q1, q2):
-    
+    """"Given two lists, flags the entries where all lists contain finite values and return lists containing only those entries"""
+
     q11 = q1[np.logical_and(np.isfinite(q1), np.isfinite(q2))]
     q22 = q2[np.logical_and(np.isfinite(q1), np.isfinite(q2))]
     return q11, q22

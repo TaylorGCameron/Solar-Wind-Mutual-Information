@@ -17,6 +17,15 @@ import os
 import numpy.linalg as LA
 
 def process_SuperMAG():
+    '''
+    Pulls SuperMAG data from a folder specified in config.par year by year, loads
+    it into a data structure and saves it to file
+    
+    Arguments:
+        
+    Returns:
+        int: Function finished indicator
+    '''
     start_year = int(uf.get_parameter('start_year'))
     end_year = int(uf.get_parameter('end_year'))
 
@@ -75,6 +84,7 @@ def process_SuperMAG():
         sm['smu'] = smu   
         np.save(filename, sm)
         print('Finished ', year)
+        return 1
 
 def pull_data():
     '''
@@ -391,7 +401,7 @@ def average_ACE_year(year):
 
 def average_ACE():
     '''
-    Computes average_data_year() for each year from start_year to end_year as
+    Computes average_ACE_year() for each year from start_year to end_year as
     specified in config.par. 
     
     Arguments:
@@ -410,6 +420,15 @@ def average_ACE():
 
 
 def average_SuperMAG():
+    '''
+    For each interval in a yea, for each year, compute the average of each 
+    SuperMAG index and store the results to a separate file for each year.
+    
+    Arguments:
+    
+    Returns:
+        int: Function completed indicator
+    '''
     filepath = uf.get_parameter('filepath')
     start_year = int(uf.get_parameter('start_year'))
     end_year = int(uf.get_parameter('end_year'))
@@ -482,27 +501,45 @@ def average_SuperMAG():
         sm['smu'] = smu
         sm['sml'] = sml
         np.save(filepath+'Averages/SuperMAG_avg_'+str(year), sm)
+    return 1
 
     
     
-def calc_MVAB0_normals():
+def calc_MVAB0_normals(ratio = 2):
     '''
     Computes calc_MVAB0_normals_year() for each year from start_year to end_year as
     specified in config.par. 
     
     Arguments:
     
+    Keyword Arguments:
+        ratio(int): Ratio between eigenvalues required for MVAB0 normal to be accepted
+        
     Returns:
         int: Function completed indicator
     '''
     start_year = int(uf.get_parameter('start_year'))
     end_year = int(uf.get_parameter('end_year'))
     for i in range(start_year, end_year):
-        calc_MVAB0_normals_year(i)
+        calc_MVAB0_normals_year(i, ratio = ratio)
     return 1
     #For each interval, compute MVAB0 normals
     
-def calc_MVAB0_normals_year(year):
+def calc_MVAB0_normals_year(year, ratio = 2):
+    '''
+    For each interval in a year, computes the MVAB0 normal using ACE IMF data, 
+    and saves the normals to a file.
+
+    
+    Arguments:
+        year(int): Year to compute MVAB0 for
+        
+    Keyword Arguments:
+        ratio(int): Ratio between eigenvalues required for MVAB0 normal to be accepted
+        
+    Returns:
+        int: Function completed indicator
+    '''
     print('Calculating '+ str(year))
     filepath = uf.get_parameter('filepath')
         #check for file
@@ -522,7 +559,7 @@ def calc_MVAB0_normals_year(year):
         if ACE_B_indices[i,0] == -1:
             continue
         else:
-            normals[i] = MVAB0(ACE_B['B'][ACE_B_indices[i,0]:ACE_B_indices[i,1]], 2)
+            normals[i] = MVAB0(ACE_B['B'][ACE_B_indices[i,0]:ACE_B_indices[i,1]], ratio = ratio)
 
         p = int(float(i)/len(ACE_B_indices)*100.)
         if p != p0:
@@ -537,6 +574,19 @@ def calc_MVAB0_normals_year(year):
     
     
 def MVAB0(B, ratio = 2):
+    '''
+    Computes MVAB0 normal for a given set of IMF data.
+
+    
+    Arguments:
+        B(array): A nx3 array containing vector B data to compute a MVAB0 normal from
+        
+    Keyword Arguments:
+        ratio(int): Ratio between eigenvalues required for MVAB0 normal to be accepted
+        
+    Returns:
+        array: The phase front normal direction given by MVAB0.
+    '''
     if len(B) == 0:
         return np.nan
     M = np.zeros([3,3])
@@ -579,6 +629,18 @@ def MVAB0(B, ratio = 2):
         return front_normal
 
 def load_data():
+    '''
+    Loads averaged ACE and SuperMAG data files, and loads and processes MVAB0 
+    data files and loads it all into a data structure. MVAB0 processes means 
+    computing azimuth and incilnations for each normal.
+    
+    Arguments:
+        
+    Keyword Arguments:
+        
+    Returns:
+        data structure: Structure containing averaged ACE and SuperMAG data, and MVAB0 phase front information
+    '''
     filepath = uf.get_parameter('filepath')
     start_year = int(uf.get_parameter('start_year'))
     end_year = int(uf.get_parameter('end_year'))
@@ -619,6 +681,20 @@ def load_data():
     return data
 
 def process_normals(n):
+    '''
+    Given a vector normal, computes the azimuth and inclination. 
+    
+    Arguments:
+        n(array): A nx3 array containing n phase front normals
+        
+    Keyword Arguments:
+        
+    Returns:
+        angles(array): A list of angles from the Earth-Sun line derived form n
+        inc(array): A list of inclinations derived the n
+        az(array): A list of aimuths derived from n
+        
+    '''
 
     angles = np.rad2deg(np.arccos(n[...,0]))
     ##inclination
